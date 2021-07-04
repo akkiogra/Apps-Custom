@@ -1,24 +1,29 @@
 #!/bin/bash
 #
-# Title:      moviematch
-# Author(s):  eidanyosoy
-# URL:        https://github.com/FlareSolverr/FlareSolverr
+# Title:      PGBlitz (Reference Title File)
+# Author(s):  Admin9705
+# URL:        https://pgblitz.com - http://github.pgblitz.com
+# GNU:        General Public License v3.0
 ################################################################################
 ---
 - hosts: localhost
   gather_facts: false
   tasks:
-    # FACTS #######################################################################
+    # CORE (MANDATORY) DO NOT CHANGE ###########################################
+
     - name: 'Set Known Facts'
       set_fact:
-        pgrole: 'moviematch'
-        intport: '8000'
-        extport: '8601'
-        image: 'lukechannings/moviematch'
+        pgrole: 'radarr4k'
+        intport: '7878'
+        extport: '7874'
+        image: 'linuxserver/radarr:nightly'
 
     # CORE (MANDATORY) ############################################################
     - name: 'Including cron job'
-      include_tasks: '/opt/communityapps/apps/_core.yml'
+      include_tasks: '/opt/coreapps/apps/_core.yml'
+
+    - name: 'Including plugins'
+      include_tasks: '/opt/coreapps/apps/_plugins.yml'
 
     # LABELS ######################################################################
     - name: 'Adding Traefik'
@@ -41,19 +46,18 @@
     - name: 'Setting {{pgrole}} Volumes'
       set_fact:
         pg_volumes:
-          - '/etc/localtime:/etc/localtime:ro'
-          - '/opt/appdata/{{pgrole}}:/storage'
+          - '{{path.stdout}}:{{path.stdout}}'
+          - '/opt/appdata/{{pgrole}}:/config'
+          - '/opt/appdata/{{pgrole}}/mp4_automator:/config_mp4_automator'
 
     - name: 'Setting {{pgrole}} ENV'
       set_fact:
         pg_env:
           PUID: '1000'
           PGID: '1000'
-          LOG_LEVEL: 'DEBUG'
-          PLEX_TOKEN: 'YOURPLEXTOKENHERE'
-          PLEX_URL: 'https://plex.{{domain.stdout}}:443'
-          TZ: 'America/New_York'
+
     # MAIN DEPLOYMENT #############################################################
+
     - name: 'Deploying {{pgrole}}'
       docker_container:
         name: '{{pgrole}}'
@@ -70,3 +74,22 @@
               - '{{pgrole}}'
         state: started
         labels: '{{pg_labels}}'
+
+    - name: 'Checking for existing app data'
+      stat:
+        path: /opt/appdata/{{pgrole}}/config.xml
+      register: confcheck
+
+    - name: 'Update {{pgrole}} for first time use'
+      block:
+        - pause:
+            prompt: "Wait for {{pgrole}} start up"
+            seconds: 5
+
+        - name: 'update owner rights for {{pgrole}}'
+          shell: 'docker exec {{pgrole}} chown -cR abc:abc /opt/radarr/'
+
+        - name: 'update permission errors for {{pgrole}}'
+          shell: 'docker exec {{pgrole}} chmod -cR 775 /opt/radarr'
+
+      when: confcheck.stat.exists
