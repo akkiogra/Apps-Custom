@@ -51,12 +51,10 @@
               - '{{pgrole}}'
         state: started
 ## MAIN DEPLOYMENT #################################################################
----
 - hosts: localhost
   gather_facts: false
   tasks:
     # FACTS #######################################################################
-
     - name: 'Set Known Facts'
       set_fact:
         pgrole: 'Petio'
@@ -120,3 +118,4 @@
               - '{{pgrole}}'
         state: started
         labels: '{{pg_labels}}'
+        
