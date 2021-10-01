@@ -14,7 +14,7 @@
     - name: 'Set Known Facts'
       set_fact:
         pgrole: 'flood'
-        intport: '80'
+        intport: '5896'
         extport: '5896'
         image: 'jesec/flood'
 
@@ -63,7 +63,7 @@
         pg_env:
           "UID": "1000"
           "GID": "1000"
-          "FLOOD_OPTION_port": "80"
+          "FLOOD_OPTION_port": "5896"
 
     # MAIN DEPLOYMENT #############################################################
     - name: 'Deploying {{pgrole}}'
