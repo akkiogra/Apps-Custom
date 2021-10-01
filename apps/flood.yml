@@ -63,6 +63,7 @@
         pg_env:
           UID: 1000
           GID: 1000
+          FLOOD_OPTION_port: 5896
 
     # MAIN DEPLOYMENT #############################################################
     - name: 'Deploying {{pgrole}}'
